@@ -1,0 +1,65 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <DHT.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+#define DHTPIN 7
+#define DHTTYPE DHT11
+#define LDRPIN A0
+
+DHT dht(DHTPIN, DHTTYPE);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("Error OLED");
+    while(true);
+  }
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+}
+
+void loop() {
+
+  // Leer temperatura y humedad
+  float temperatura = dht.readTemperature();
+  float humedad = dht.readHumidity();
+
+  // Leer luz y multiplicar por 10
+  int luzRaw = analogRead(LDRPIN);
+  int luzPorcentaje = map(luzRaw, 0, 1023, 0, 100) * 10;
+  luzPorcentaje = constrain(luzPorcentaje, 0, 1000); // Limitar a 1000
+
+  // Mostrar en OLED
+  display.clearDisplay();
+
+  display.setTextSize(1);
+  display.setCursor(0,0);
+  display.println("CLIMA INTERIOR");
+
+  display.setCursor(0,20);
+  display.print("Temp: ");
+  display.print(temperatura);
+  display.println(" C");
+
+  display.setCursor(0,35);
+  display.print("Humedad: ");
+  display.print(humedad);
+  display.println(" %");
+
+  display.setCursor(0,50);
+  display.print("Luz: ");
+  display.print(luzPorcentaje);
+  display.println(" %");
+
+  display.display();
+
+  delay(2000);
+}
